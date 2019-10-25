@@ -3,10 +3,14 @@ package com.github.cornerstonews.adb;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.Arrays;
 
 import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.FileListingService.FileEntry;
 import com.android.ddmlib.IDevice;
+import com.android.ddmlib.InstallException;
+import com.android.ddmlib.MultiLineReceiver;
+import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.android.ddmlib.SyncException;
 import com.android.ddmlib.TimeoutException;
 
@@ -19,7 +23,7 @@ public class AdbExecutor {
         this.deviceSerial = deviceSerial;
         this.device = device;
     }
-    
+
     public String getDeviceSerial() {
         return deviceSerial;
     }
@@ -47,10 +51,10 @@ public class AdbExecutor {
             }
         }
 
-        if(fetchChildren) {
+        if (fetchChildren) {
             recursivePopulatePath(path);
         }
-        
+
         return FileNodeConverter.convert(path);
     }
 
@@ -70,5 +74,43 @@ public class AdbExecutor {
 
     public void pushFile(String local, String remote) throws SyncException, IOException, AdbCommandRejectedException, TimeoutException {
         this.device.pushFile(local, remote);
+    }
+
+    public void installPackage(String packagePath, boolean reinstall) throws InstallException {
+        this.device.installRemotePackage(packagePath, reinstall);
+    }
+
+    public void uninstallPackage(String packageName) throws InstallException {
+        this.device.uninstallPackage(packageName);
+    }
+    
+    public boolean isOnline() {
+        return this.device.isOnline();
+    }
+
+    public boolean isOffline() {
+        return this.device.isOffline();
+    }
+
+    public void reboot() throws TimeoutException, AdbCommandRejectedException, IOException {
+        this.device.reboot(null);
+    }
+    
+    public String executeShellCommand(String command) throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
+        final StringBuilder commandOutput = new StringBuilder();;
+        this.device.executeShellCommand(command, new MultiLineReceiver() {
+            
+            @Override
+            public boolean isCancelled() {
+                return false;
+            }
+            
+            @Override
+            public void processNewLines(String[] lines) {
+                Arrays.stream(lines).forEach(line -> commandOutput.append(line).append(System.getProperty("line.separator")));
+            }
+        });
+        
+        return commandOutput.length() == 0 ? null : commandOutput.toString();
     }
 }
