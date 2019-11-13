@@ -52,16 +52,16 @@ public class AdbManager {
     }
 
     private AndroidDebugBridge getBridge() {
-        AndroidDebugBridge bridge = AndroidDebugBridge.getBridge();
+        bridge = AndroidDebugBridge.getBridge();
         if (bridge == null || !bridge.isConnected()) {
             synchronized (ADB_INIT_LOCK) {
                 boolean clientSupport = false;
                 AndroidDebugBridge.initIfNeeded(clientSupport);
                 LOG.info("Initializing adb using: '{}', client support = {}", adbPath, clientSupport);
-                bridge = AndroidDebugBridge.createBridge(this.adbPath, true);
+                bridge = AndroidDebugBridge.createBridge(this.adbPath, false);
                 this.bridgeCreated = true;
             }
-            while (!bridge.isConnected()) {
+            while (bridge == null || !bridge.isConnected()) {
                 try {
                     TimeUnit.MILLISECONDS.sleep(200);
                 } catch (InterruptedException e) {

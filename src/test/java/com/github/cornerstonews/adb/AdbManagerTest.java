@@ -9,20 +9,28 @@ import com.android.ddmlib.FileListingService.FileEntry;
 public class AdbManagerTest {
 
     public static void main(String[] args) throws Exception {
-        AdbManager manager = new AdbManager("/Applications/adb/platform-tools_r29.0.1");
-        List<AdbExecutor> devices = manager.getDevices();
-        System.out.println("Found devices: " + devices);
-
-        AdbExecutor adbExecutor = devices.get(0);
-//		adbExecutor.printRoot();
-        FileNode node = adbExecutor.getPath("/sdcard", true);
-        AdbManagerTest.print(node);
-
-//        adbExecutor.pushFile("/Users/ketal.patel/Desktop/spider-man-mcu-venom-sony-disney.jpg", "/sdcard/Download/spider-man-mcu-venom-sony-disney.jpg");
-//        adbExecutor.pullFile("/sdcard/Download/spider-man-mcu-venom-sony-disney.jpg",
-//                "/Users/ketal.patel/Desktop/spider-man-mcu-venom-sony-disney-downloaded.jpg");
-        
-        manager.shutdown();
+        AdbManager manager = null;;
+        try {
+            manager = new AdbManager("/Applications/adb/platform-tools_r29.0.1");
+            List<AdbExecutor> devices = manager.getDevices();
+            System.out.println("Found devices: " + devices);
+    
+            AdbExecutor adbExecutor = devices.get(0);
+            FileNode node = adbExecutor.getPath("/sdcard/", true);
+            AdbManagerTest.print(node);
+    //		adbExecutor.printRoot();
+            node = adbExecutor.getPath("/sdcard/Android/data/com.android.chrome/files/Download", false);
+            AdbManagerTest.print(node);
+    
+    //        adbExecutor.pushFile("/Users/ketal.patel/Desktop/spider-man-mcu-venom-sony-disney.jpg", "/sdcard/Download/spider-man-mcu-venom-sony-disney.jpg");
+    //        adbExecutor.pullFile("/sdcard/Download/spider-man-mcu-venom-sony-disney.jpg",
+    //                "/Users/ketal.patel/Desktop/spider-man-mcu-venom-sony-disney-downloaded.jpg");
+            
+       } finally {
+           if(manager != null) {
+               manager.shutdown();
+           }
+       }
     }
 
     public static void print(FileNode node) throws JAXBException {

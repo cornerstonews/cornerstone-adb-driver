@@ -55,6 +55,7 @@ public class AdbExecutor {
             recursivePopulatePath(path);
         }
 
+        System.out.println();
         return FileNodeConverter.convert(path);
     }
 
