@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>cornerstone-adb-driver</artifactId>
+    <packaging>jar</packaging>
+    <name>cornerstone-adb-driver</name>
+    <description>Cornerstone ADB library</description>
+
+    <parent>
+        <groupId>com.github.cornerstonews</groupId>
+        <artifactId>cornerstone-project</artifactId>
+        <version>1.1.0</version>
+        <relativePath>../cornerstone-project/pom.xml</relativePath>
+    </parent>
+
+    <scm>
+        <connection>scm:git:git@github.com:cornerstonews/cornerstone-adb-driver.git</connection>
+        <developerConnection>scm:git:git@github.com:cornerstonews/cornerstone-adb-driver.git</developerConnection>
+        <url>https://github.com/cornerstonews/cornerstone-adb-driver</url>
+        <tag>cornerstone-adb-driver-1.1.0</tag>
+    </scm>
+
+    <repositories>
+        <repository>
+            <id>google-android</id>
+            <name>Google’s Android</name>
+            <url>https://maven.google.com</url>
+        </repository>
+    </repositories>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <com.android.tools>26.5.1</com.android.tools>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.android.tools</groupId>
+            <artifactId>common</artifactId>
+            <version>${com.android.tools}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.android.tools.ddms</groupId>
+            <artifactId>ddmlib</artifactId>
+            <version>${com.android.tools}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>jakarta.xml.bind</groupId>
+            <artifactId>jakarta.xml.bind-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+        </dependency>
+
+    </dependencies>
+
+</project>
+
