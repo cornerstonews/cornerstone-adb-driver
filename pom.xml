@@ -10,7 +10,7 @@
     <parent>
         <groupId>com.github.cornerstonews</groupId>
         <artifactId>cornerstone-project</artifactId>
-        <version>1.1.0</version>
+        <version>1.2.0</version>
         <relativePath>../cornerstone-project/pom.xml</relativePath>
     </parent>
 
@@ -18,7 +18,7 @@
         <connection>scm:git:git@github.com:cornerstonews/cornerstone-adb-driver.git</connection>
         <developerConnection>scm:git:git@github.com:cornerstonews/cornerstone-adb-driver.git</developerConnection>
         <url>https://github.com/cornerstonews/cornerstone-adb-driver</url>
-        <tag>cornerstone-adb-driver-1.1.0</tag>
+        <tag>cornerstone-adb-driver-1.2.0</tag>
     </scm>
 
     <repositories>
@@ -31,7 +31,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <com.android.tools>26.5.1</com.android.tools>
+        <com.android.tools>27.0.1</com.android.tools>
     </properties>
 
     <dependencies>
