@@ -46,6 +46,9 @@ public class DeviceInfo {
 
     private static final String CMD_GET_WIFI_ON = "settings get global wifi_on";
     private static final String CMD_GET_MOBILE_DATA = "settings get global mobile_data";
+    private static final String CMD_GET_AIRPLANE_MODE = "settings get global airplane_mode_on";
+    private static final String CMD_GET_BLUETOOTH_ON = "settings get global bluetooth_on";
+    private static final String CMD_GET_NFC_STATUS = "dumpsys nfc | grep mState";
 
     private AdbExecutor adbExecutor;
     private IDevice adbDevice;
@@ -75,7 +78,7 @@ public class DeviceInfo {
         }
 
         deviceDO.setState(this.getState());
-        deviceDO.setIsOnline(this.adbDevice.isOnline());
+        deviceDO.setOnline(this.adbDevice.isOnline());
 
         if (this.adbDevice.isOnline()) {
             deviceDO.setBatteryLevel(this.getBatteryLevel());
@@ -84,7 +87,7 @@ public class DeviceInfo {
 
             deviceDO.setNetwork(this.getNetwork());
             deviceDO.setWifiEnabled(this.isWifiEnabled());
-            deviceDO.setIsSimPresent(this.isSimPresent());
+            deviceDO.setSimPresent(this.isSimPresent());
             deviceDO.setICCID(this.getICCID());
             deviceDO.setIMSI(this.getIMSI());
             deviceDO.setIMEI(this.getIMEI());
@@ -93,6 +96,9 @@ public class DeviceInfo {
             deviceDO.setRssi(this.getRssi());
             deviceDO.setMobileDataEnabled(this.isMobileDataEnabled());
             deviceDO.setMobileDataType(this.getMobileDataType());
+            deviceDO.setAirplaneModeOn(this.isAirplaneModeOn());
+            deviceDO.setBluetoothOn(this.isBluetoothOn());
+            deviceDO.setNfcOn(this.isNFCOn());
         }
 
         return deviceDO;
@@ -165,15 +171,32 @@ public class DeviceInfo {
     }
 
     public Boolean isWifiEnabled() {
-        Boolean wifiEnabled = false;
-        if (!isOnline()) {
-            return wifiEnabled;
+        String wifiStatus = this.getDataFromShellCommand("WIFI_STATUS", CMD_GET_WIFI_ON);
+        if (isOnline() && ("1".equalsIgnoreCase(wifiStatus) || "2".equalsIgnoreCase(wifiStatus))) {
+            return true;
         }
-        String wifiOn = this.getDataFromShellCommand("WIFI_STATUS", CMD_GET_WIFI_ON);
-        if ("1".equalsIgnoreCase(wifiOn)) {
-            wifiEnabled = true;
+        return false;
+    }
+
+    private boolean isNFCOn() {
+        if (isOnline() && this.getDataFromShellCommand("NFC_STATUS", CMD_GET_NFC_STATUS).contains("mState=on")) {
+            return true;
         }
-        return wifiEnabled;
+        return false;
+    }
+
+    private boolean isBluetoothOn() {
+        if (isOnline() && "1".equalsIgnoreCase(this.getDataFromShellCommand("BLUETOOTH_STATUS", CMD_GET_BLUETOOTH_ON))) {
+            return true;
+        }
+        return false;
+    }
+
+    private boolean isAirplaneModeOn() {
+        if (isOnline() && "1".equalsIgnoreCase(this.getDataFromShellCommand("AIRPLANE_MODE_STATUS", CMD_GET_AIRPLANE_MODE))) {
+            return true;
+        }
+        return false;
     }
 
     public Boolean isSimPresent() {
@@ -181,26 +204,28 @@ public class DeviceInfo {
         boolean isPresent = false;
 
         String rawSimState = getSimState();
-        String[] simState = rawSimState.split(",");
+        if (rawSimState != null) {
+            String[] simState = rawSimState.split(",");
 
-        for (String state : simState) {
-            switch (state.toUpperCase()) {
-            case "PIN_REQUIRED":
-            case "PUK_REQUIRED":
-            case "NETWORK_LOCKED":
-            case "READY":
-            case "NOT_READY":
-            case "PERM_DISABLED":
-            case "CARD_RESTRICTED":
-            case "LOADED":
-                isPresent = true;
-                break;
+            for (String state : simState) {
+                switch (state.toUpperCase()) {
+                case "PIN_REQUIRED":
+                case "PUK_REQUIRED":
+                case "NETWORK_LOCKED":
+                case "READY":
+                case "NOT_READY":
+                case "PERM_DISABLED":
+                case "CARD_RESTRICTED":
+                case "LOADED":
+                    isPresent = true;
+                    break;
 
-            case "ABSENT":
-            case "UNKNOWN":
-            case "CARD_IO_ERROR":
-            default:
-                isPresent = isPresent ? true : false;
+                case "ABSENT":
+                case "UNKNOWN":
+                case "CARD_IO_ERROR":
+                default:
+                    isPresent = isPresent ? true : false;
+                }
             }
         }
         return isPresent;

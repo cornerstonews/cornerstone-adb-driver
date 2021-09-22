@@ -7,22 +7,25 @@ public class DeviceDO {
     private String manufacturer;
     private String model;
     private String product;
-    private Boolean isOnline;
+    private boolean isOnline;
     private String state;
     private Integer batteryLevel;
     private String batteryHealth;
     private Double batteryTemperature;
     private String network;
-    private Boolean wifiEnabled;
-    private Boolean isSimPresent = false;
+    private boolean isWifiEnabled;
+    private boolean isSimPresent = false;
     private String ICCID;
     private String IMSI;
     private String IMEI;
     private String phoneNumber;
     private String simOperator;
     private Integer rssi;
-    private Boolean mobileDataEnabled;
+    private boolean isMobileDataEnabled;
     private String mobileDataType;
+    private boolean isAirplaneModeOn;
+    private boolean isBluetoothOn;
+    private boolean isNfcOn;
 
     public DeviceDO() {
     }
@@ -67,11 +70,11 @@ public class DeviceDO {
         this.product = product;
     }
 
-    public Boolean getIsOnline() {
+    public boolean isOnline() {
         return isOnline;
     }
 
-    public void setIsOnline(Boolean isOnline) {
+    public void setOnline(boolean isOnline) {
         this.isOnline = isOnline;
     }
 
@@ -115,19 +118,19 @@ public class DeviceDO {
         this.network = network;
     }
 
-    public Boolean getWifiEnabled() {
-        return wifiEnabled;
+    public boolean isWifiEnabled() {
+        return isWifiEnabled;
     }
 
-    public void setWifiEnabled(Boolean wifiEnabled) {
-        this.wifiEnabled = wifiEnabled;
+    public void setWifiEnabled(boolean isWifiEnabled) {
+        this.isWifiEnabled = isWifiEnabled;
     }
 
-    public Boolean getIsSimPresent() {
+    public boolean isSimPresent() {
         return isSimPresent;
     }
 
-    public void setIsSimPresent(Boolean isSimPresent) {
+    public void setSimPresent(boolean isSimPresent) {
         this.isSimPresent = isSimPresent;
     }
 
@@ -179,12 +182,12 @@ public class DeviceDO {
         this.rssi = rssi;
     }
 
-    public Boolean getMobileDataEnabled() {
-        return mobileDataEnabled;
+    public boolean isMobileDataEnabled() {
+        return isMobileDataEnabled;
     }
 
-    public void setMobileDataEnabled(Boolean mobileDataEnabled) {
-        this.mobileDataEnabled = mobileDataEnabled;
+    public void setMobileDataEnabled(boolean isMobileDataEnabled) {
+        this.isMobileDataEnabled = isMobileDataEnabled;
     }
 
     public String getMobileDataType() {
@@ -194,4 +197,29 @@ public class DeviceDO {
     public void setMobileDataType(String mobileDataType) {
         this.mobileDataType = mobileDataType;
     }
+
+    public boolean isAirplaneModeOn() {
+        return isAirplaneModeOn;
+    }
+
+    public void setAirplaneModeOn(boolean isAirplaneModeOn) {
+        this.isAirplaneModeOn = isAirplaneModeOn;
+    }
+
+    public boolean isBluetoothOn() {
+        return isBluetoothOn;
+    }
+
+    public void setBluetoothOn(boolean isBluetoothOn) {
+        this.isBluetoothOn = isBluetoothOn;
+    }
+
+    public boolean isNfcOn() {
+        return isNfcOn;
+    }
+
+    public void setNfcOn(boolean isNfcOn) {
+        this.isNfcOn = isNfcOn;
+    }   
+    
 }
