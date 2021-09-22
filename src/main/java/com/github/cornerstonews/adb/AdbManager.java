@@ -161,6 +161,7 @@ public class AdbManager {
                     AdbExecutor deviceAdbExecutor = new AdbExecutor(device.getSerialNumber(), device);
                     deviceAdbExecutor.getDeviceInfo();
                     devices.put(device.getSerialNumber(), deviceAdbExecutor);
+                    updateDeviceStatusListener(deviceAdbExecutor);
                 }
             }
         };
