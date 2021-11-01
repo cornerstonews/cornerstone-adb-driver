@@ -5,6 +5,9 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Arrays;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.FileListingService.FileEntry;
 import com.android.ddmlib.IDevice;
@@ -16,21 +19,36 @@ import com.android.ddmlib.TimeoutException;
 
 public class AdbExecutor {
 
-    private String deviceSerial;
-    private IDevice device;
+    private static final Logger LOG = LogManager.getLogger(AdbExecutor.class);
 
-    public AdbExecutor(String deviceSerial, IDevice device) {
+    private String deviceSerial;
+    private IDevice adbDevice;
+    private DeviceInfo deviceInfo;
+
+    public AdbExecutor(String deviceSerial, IDevice adbDevice) {
         this.deviceSerial = deviceSerial;
-        this.device = device;
+        this.adbDevice = adbDevice;
+        this.deviceInfo = new DeviceInfo(this, adbDevice);
     }
 
     public String getDeviceSerial() {
         return deviceSerial;
     }
 
+    public DeviceDO getDeviceInfo() {
+        return this.deviceInfo.getDeviceInfo();
+    }
+
+    public Boolean isOnline() {
+        return this.deviceInfo.isOnline();
+    }
+
+    // -----------------------------------------------------------------------
+    // File operations
+    // -----------------------------------------------------------------------
     private FileEntry getRoot() {
-        FileEntry root = this.device.getFileListingService().getRoot();
-        this.device.getFileListingService().getChildren(root, false, null);
+        FileEntry root = this.adbDevice.getFileListingService().getRoot();
+        this.adbDevice.getFileListingService().getChildren(root, false, null);
         return root;
     }
 
@@ -47,7 +65,7 @@ public class AdbExecutor {
             path = path.findChild(pathName);
 
             if (path.getCachedChildren().length == 0) {
-                this.device.getFileListingService().getChildren(path, false, null);
+                this.adbDevice.getFileListingService().getChildren(path, false, null);
             }
         }
 
@@ -55,12 +73,11 @@ public class AdbExecutor {
             recursivePopulatePath(path);
         }
 
-        System.out.println();
         return FileNodeConverter.convert(path);
     }
 
     private void recursivePopulatePath(FileEntry pathEntry) {
-        this.device.getFileListingService().getChildren(pathEntry, false, null);
+        this.adbDevice.getFileListingService().getChildren(pathEntry, false, null);
 
         for (FileEntry entry : pathEntry.getCachedChildren()) {
             if (entry.isDirectory()) {
@@ -70,48 +87,50 @@ public class AdbExecutor {
     }
 
     public void pullFile(String remote, String local) throws SyncException, IOException, AdbCommandRejectedException, TimeoutException {
-        this.device.pullFile(remote, local);
+        this.adbDevice.pullFile(remote, local);
     }
 
     public void pushFile(String local, String remote) throws SyncException, IOException, AdbCommandRejectedException, TimeoutException {
-        this.device.pushFile(local, remote);
+        this.adbDevice.pushFile(local, remote);
     }
 
+    // -----------------------------------------------------------------------
+    // Package operations
+    // -----------------------------------------------------------------------
     public void installPackage(String packagePath, boolean reinstall) throws InstallException {
-        this.device.installRemotePackage(packagePath, reinstall);
+        LOG.info("Instaling package: '{}' on device: '{}'", packagePath, this.getDeviceSerial());
+        this.adbDevice.installRemotePackage(packagePath, reinstall);
     }
 
     public void uninstallPackage(String packageName) throws InstallException {
-        this.device.uninstallPackage(packageName);
-    }
-    
-    public boolean isOnline() {
-        return this.device.isOnline();
+        LOG.info("Uninstaling package: '{}' from device: '{}'", packageName, this.getDeviceSerial());
+        this.adbDevice.uninstallPackage(packageName);
     }
 
-    public boolean isOffline() {
-        return this.device.isOffline();
-    }
-
-    public void reboot() throws TimeoutException, AdbCommandRejectedException, IOException {
-        this.device.reboot(null);
-    }
-    
+    // -----------------------------------------------------------------------
+    // RAW Commands
+    // -----------------------------------------------------------------------
     public String executeShellCommand(String command) throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
-        final StringBuilder commandOutput = new StringBuilder();;
-        this.device.executeShellCommand(command, new MultiLineReceiver() {
-            
+        LOG.info("Executing shell command on device: '{}', command: '{}'", this.getDeviceSerial(), command);
+        final StringBuilder commandOutput = new StringBuilder();
+        this.adbDevice.executeShellCommand(command, new MultiLineReceiver() {
+
             @Override
             public boolean isCancelled() {
                 return false;
             }
-            
+
             @Override
             public void processNewLines(String[] lines) {
                 Arrays.stream(lines).forEach(line -> commandOutput.append(line).append(System.getProperty("line.separator")));
             }
         });
-        
+
         return commandOutput.length() == 0 ? null : commandOutput.toString();
+    }
+
+    public void reboot() throws TimeoutException, AdbCommandRejectedException, IOException {
+        LOG.info("Rebooting device: '{}'", this.getDeviceSerial());
+        this.adbDevice.reboot(null);
     }
 }
