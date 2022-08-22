@@ -1,6 +1,7 @@
 package com.github.cornerstonews.adb;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -16,67 +17,24 @@ import com.android.ddmlib.TimeoutException;
 public class DeviceInfo {
     private static final Logger LOG = LogManager.getLogger(DeviceInfo.class);
 
-    private static final String PROP_PRODUCT_DEVICE = "ro.product.product.device";
-    private static final String PROP_SIM_STATE = "gsm.sim.state";
-    private static final String PROP_SIM_OPERATOR = "gsm.operator.alpha";
-    private static final String PROP_GSM_NETWORK_TYPE = "gsm.network.type";
-
-    // How to use use service call command
-    // https://android.stackexchange.com/questions/34625/where-to-find-description-of-all-system-bin-service-calls
-
-    // https://android.googlesource.com/platform/frameworks/base/+/master/telephony/java/com/android/internal/telephony/IPhoneSubInfo.aidl
-    // https://android.googlesource.com/platform/frameworks/opt/telephony/+/master/src/java/com/android/internal/telephony/PhoneSubInfoController.java
-
-    private static final String CMD_GET_IMEI = "service call iphonesubinfo 2 | cut -c 52-66 | tr -d '.[:space:]'";
-    private static final String CMD_GET_IMEI_ANDROID_8_to_10 = "service call iphonesubinfo 1 | cut -c 52-66 | tr -d '.[:space:]'";
-
-    private static final String CMD_GET_IMSI = "service call iphonesubinfo 9 | cut -c 52-66 | tr -d '.[:space:]'";
-    private static final String CMD_GET_IMSI_ANDROID_8_to_10 = "service call iphonesubinfo 7 | cut -c 52-66 | tr -d '.[:space:]'";
-
-    // getIccSerialNumberWithFeature()
-    private static final String CMD_GET_ICCID = "service call iphonesubinfo 13 | cut -c 52-66 | tr -d '.[:space:]'";
-    // getIccSerialNumber() or getIccSerialNumberForSubscriber()
-    private static final String CMD_GET_ICCID_ANDROID_8_to_10 = "service call iphonesubinfo 11 | cut -c 52-66 | tr -d '.[:space:]'";
-    // getIccSerialNumber()
-//    private static final String CMD_GET_ICCID_ANDROID_8 = "service call iphonesubinfo 11 | cut -c 52-66 | tr -d '.[:space:]'";
-
-    private static final String CMD_GET_NUMBER = "service call iphonesubinfo 16 | cut -c 52-66 | tr -d '.[:space:]'";
-    private static final String CMD_GET_NUMBER_ANDROID_9_to_10 = "service call iphonesubinfo 13 | cut -c 52-66 | tr -d '.[:space:]'";
-    private static final String CMD_GET_NUMBER_ANDROID_8 = "service call iphonesubinfo 14 | cut -c 52-66 | tr -d '.[:space:]'";
-
-    private static final String CMD_GET_WIFI_ON = "settings get global wifi_on";
-    private static final String CMD_GET_MOBILE_DATA = "settings get global mobile_data";
-    private static final String CMD_GET_AIRPLANE_MODE = "settings get global airplane_mode_on";
-    private static final String CMD_GET_BLUETOOTH_ON = "settings get global bluetooth_on";
-    private static final String CMD_GET_NFC_STATUS = "dumpsys nfc | grep mState";
-
     private AdbExecutor adbExecutor;
     private IDevice adbDevice;
     private BatteryFetcher batteryFetcher;
 
-    private DeviceDO deviceDO;
+    private Map<String, String> commands;
+    private DeviceDO deviceDO = new DeviceDO();
 
-    public DeviceInfo(AdbExecutor adbExcutor, IDevice device) {
-        this.adbExecutor = adbExcutor;
+    public DeviceInfo(AdbExecutor adbExecutor, IDevice device) {
+        this.adbExecutor = adbExecutor;
         this.adbDevice = device;
+
         this.batteryFetcher = new BatteryFetcher(device);
+        setBasicDeviceInfo();
+        commands = DeviceInfoAdbCommands.getCommands(this.deviceDO.getApiLevel());
+        setFetchOnlyOnceData();
     }
 
-    // -----------------------------------------------------------------------
-    // Device Info
-    // -----------------------------------------------------------------------
-    public DeviceDO getDeviceInfo() {
-        if (this.deviceDO == null) {
-            this.deviceDO = new DeviceDO();
-
-            // Cache data that do not change frequently
-            deviceDO.setSerialNumber(this.adbDevice.getSerialNumber());
-            deviceDO.setAndroidVersion(this.getAndroidVersion());
-            deviceDO.setManufacturer(this.getProductManufacturer());
-            deviceDO.setModel(this.getProductModel());
-            deviceDO.setProduct(this.getProductDevice());
-        }
-
+    public DeviceDO getInfo() {
         deviceDO.setState(this.getState());
         deviceDO.setOnline(this.adbDevice.isOnline());
 
@@ -85,7 +43,6 @@ public class DeviceInfo {
             deviceDO.setBatteryHealth(this.getBatteryHealth());
             deviceDO.setBatteryTemperature(this.getBatteryTemperature());
 
-            deviceDO.setNetwork(this.getNetwork());
             deviceDO.setWifiEnabled(this.isWifiEnabled());
             deviceDO.setSimPresent(this.isSimPresent());
             deviceDO.setICCID(this.getICCID());
@@ -116,36 +73,38 @@ public class DeviceInfo {
         return this.adbDevice.isOffline();
     }
 
-    public String getAndroidVersion() {
-//        return this.executeShellCommand("getprop ro.build.version.release);
-        if (this.deviceDO == null || this.deviceDO.getAndroidVersion() == null) {
-            return this.getProperty(IDevice.PROP_BUILD_VERSION);
+    private void setBasicDeviceInfo() {
+        // Cache data that does not change or change frequently
+        this.deviceDO.setSerialNumber(this.adbDevice.getSerialNumber());
+        this.deviceDO.setApiLevel(this.adbDevice.getVersion().getApiLevel());
+        this.deviceDO.setAndroidVersion(this.getProperty(IDevice.PROP_BUILD_VERSION));
+        this.deviceDO.setManufacturer(this.getProperty(IDevice.PROP_DEVICE_MANUFACTURER));
+        this.deviceDO.setModel(this.getProperty(IDevice.PROP_DEVICE_MODEL));
+        this.deviceDO.setProduct(this.getProperty(DeviceInfoAdbCommands.PROP_DEVICE_NAME));
+    }
+
+    private void setFetchOnlyOnceData() {
+        if (this.deviceDO.getApiLevel() >= 32) {
+            cachePhoneInfoWithDialerApp();
         }
-        return this.deviceDO.getAndroidVersion();
     }
 
-    public String getProductManufacturer() {
-        return this.getProperty(IDevice.PROP_DEVICE_MANUFACTURER);
+    private void cachePhoneInfoWithDialerApp() {
+        this.getDataFromShellCommand("GET_SIM_INFO_FROM_DIALER", DeviceInfoAdbCommands.CMD_DIALER_DEVICE_INFO);
     }
 
-    public String getProductModel() {
-        return this.getProperty(IDevice.PROP_DEVICE_MODEL);
-    }
-
-    public String getProductDevice() {
-        return this.getProperty(PROP_PRODUCT_DEVICE);
-    }
-
-    public Integer getBatteryLevel() {
+    private Integer getBatteryLevel() {
+        // Fetch every 1 minutes, The battery level may be cached.
+        // Only queries the device for its battery level if 1 minutes have expired since the last successful query.
+        Future<Integer> futureBattery = this.adbDevice.getBattery(60 * 1000, TimeUnit.MILLISECONDS);
         try {
-            return this.adbDevice.getBattery(60, TimeUnit.SECONDS).get();
+            return futureBattery.get();
         } catch (InterruptedException | ExecutionException e) {
-            LOG.debug("Error getting battery level for device: {}", this.adbDevice.getSerialNumber(), e);
             return null;
         }
     }
 
-    public String getBatteryHealth() {
+    private String getBatteryHealth() {
         // use default of 5 minutes
         Future<String> futureBattery = batteryFetcher.getBatteryHealth(5 * 60 * 1000, TimeUnit.MILLISECONDS);
         try {
@@ -155,7 +114,7 @@ public class DeviceInfo {
         }
     }
 
-    public Double getBatteryTemperature() {
+    private Double getBatteryTemperature() {
         // use default of 5 minutes
         Future<Double> futureBattery = batteryFetcher.getBatteryTemperature(5 * 60 * 1000, TimeUnit.MILLISECONDS);
         try {
@@ -165,45 +124,40 @@ public class DeviceInfo {
         }
     }
 
-    public String getNetwork() {
-        // TODO
-        return null;
-    }
-
-    public Boolean isWifiEnabled() {
-        String wifiStatus = this.getDataFromShellCommand("WIFI_STATUS", CMD_GET_WIFI_ON);
-        if (isOnline() && ("1".equalsIgnoreCase(wifiStatus) || "2".equalsIgnoreCase(wifiStatus))) {
+    private Boolean isWifiEnabled() {
+        String wifiStatus = this.getDataFromShellCommand("WIFI_STATUS", this.commands.get("CMD_GET_WIFI_ON"));
+        if ("1".equalsIgnoreCase(wifiStatus) || "2".equalsIgnoreCase(wifiStatus)) {
             return true;
         }
         return false;
     }
 
     private boolean isNFCOn() {
-        if (isOnline() && this.getDataFromShellCommand("NFC_STATUS", CMD_GET_NFC_STATUS).contains("mState=on")) {
+        if (this.getDataFromShellCommand("NFC_STATUS", this.commands.get("CMD_GET_NFC_STATUS")).contains("mState=on")) {
             return true;
         }
         return false;
     }
 
     private boolean isBluetoothOn() {
-        if (isOnline() && "1".equalsIgnoreCase(this.getDataFromShellCommand("BLUETOOTH_STATUS", CMD_GET_BLUETOOTH_ON))) {
+        if ("1".equalsIgnoreCase(this.getDataFromShellCommand("BLUETOOTH_STATUS", this.commands.get("CMD_GET_BLUETOOTH_ON")))) {
             return true;
         }
         return false;
     }
 
     private boolean isAirplaneModeOn() {
-        if (isOnline() && "1".equalsIgnoreCase(this.getDataFromShellCommand("AIRPLANE_MODE_STATUS", CMD_GET_AIRPLANE_MODE))) {
+        if ("1".equalsIgnoreCase(this.getDataFromShellCommand("AIRPLANE_MODE_STATUS", this.commands.get("CMD_GET_AIRPLANE_MODE")))) {
             return true;
         }
         return false;
     }
 
-    public Boolean isSimPresent() {
+    private Boolean isSimPresent() {
         // https://android.googlesource.com/platform/frameworks/base.git/+/master/telephony/java/com/android/internal/telephony/IccCardConstants.java
         boolean isPresent = false;
 
-        String rawSimState = getSimState();
+        String rawSimState = this.getProperty(this.commands.get("PROP_SIM_STATE"));
         if (rawSimState != null) {
             String[] simState = rawSimState.split(",");
 
@@ -231,113 +185,62 @@ public class DeviceInfo {
         return isPresent;
     }
 
-    public String getSimState() {
-        if (!isOnline()) {
-            return null;
-        }
-
-        return this.getProperty(PROP_SIM_STATE);
+    private String getIMEI() {
+        return this.getDataFromShellCommand("IMEI", this.commands.get("CMD_GET_IMEI"));
     }
 
-    private int getMajorVersion() {
-        return Integer.parseInt(String.valueOf(getAndroidVersion().split("\\.")[0]));
+    private String getIMSI() {
+        return this.getDataFromShellCommand("IMSI", this.commands.get("CMD_GET_IMSI"));
     }
 
-    public String getIMEI() {
-        if (!isOnline()) {
-            return null;
-        }
-
-        if (getMajorVersion() <= 10) {
-            return this.getDataFromShellCommand("IMEI", CMD_GET_IMEI_ANDROID_8_to_10);
-        }
-        return this.getDataFromShellCommand("IMEI", CMD_GET_IMEI);
+    private String getICCID() {
+        return this.getDataFromShellCommand("ICCID", this.commands.get("CMD_GET_ICCID"));
     }
 
-    public String getIMSI() {
-        if (!isOnline()) {
-            return null;
-        }
-
-        if (getMajorVersion() <= 10) {
-            return this.getDataFromShellCommand("IMSI", CMD_GET_IMSI_ANDROID_8_to_10);
-        }
-        return this.getDataFromShellCommand("IMSI", CMD_GET_IMSI);
-    }
-
-    public String getICCID() {
-        if (!isOnline()) {
-            return null;
-        }
-
-//        if (getMajorVersion() == 8) {
-//            return this.getDataFromShellCommand("ICCID", CMD_GET_ICCID_ANDROID_8);
-//        } else 
-        if (getMajorVersion() <= 10) {
-            return this.getDataFromShellCommand("ICCID", CMD_GET_ICCID_ANDROID_8_to_10);
-        }
-
-        return this.getDataFromShellCommand("ICCID", CMD_GET_ICCID);
-    }
-
-    public String getPhoneNumber() {
-        if (!isOnline()) {
-            return null;
-        }
-
-        String phoneNumber = null;
-        if (getMajorVersion() == 8) {
-            phoneNumber = this.getDataFromShellCommand("Phone Number", CMD_GET_NUMBER_ANDROID_8);
-        } else if (getMajorVersion() <= 10) {
-            phoneNumber = this.getDataFromShellCommand("Phone Number", CMD_GET_NUMBER_ANDROID_9_to_10);
-        } else {
-            phoneNumber = this.getDataFromShellCommand("Phone Number", CMD_GET_NUMBER);
-        }
-
+    private String getPhoneNumber() {
+        String phoneNumber = this.getDataFromShellCommand("Phone Number", this.commands.get("CMD_GET_NUMBER"));
         if (phoneNumber != null && !phoneNumber.isBlank()) {
             phoneNumber = phoneNumber.replaceAll("[^\\d]", "");
         }
-
         return (phoneNumber == null || phoneNumber.isBlank()) ? null : phoneNumber;
     }
-
-    public String getSimOperator() {
-        return this.getProperty(PROP_SIM_OPERATOR);
+    
+    private String getSimOperator() {
+        return this.getProperty(this.commands.get("PROP_SIM_OPERATOR"));
     }
 
-    public Integer getRssi() {
+    private Integer getRssi() {
         // TODO
         return null;
     }
 
-    public Boolean isMobileDataEnabled() {
+    private Boolean isMobileDataEnabled() {
         Boolean mobileDataEnabled = false;
         if (!isOnline()) {
             return mobileDataEnabled;
         }
-        String mobileDataOn = this.getDataFromShellCommand("MOBILE_DATA_STATUS", CMD_GET_MOBILE_DATA);
+        String mobileDataOn = this.getDataFromShellCommand("MOBILE_DATA_STATUS", this.commands.get("CMD_GET_MOBILE_DATA"));
         if ("1".equalsIgnoreCase(mobileDataOn)) {
             mobileDataEnabled = true;
         }
         return mobileDataEnabled;
     }
 
-    public String getMobileDataType() {
-        if (!isOnline()) {
-            return null;
-        }
-
-        return this.getProperty(PROP_GSM_NETWORK_TYPE);
+    private String getMobileDataType() {
+        return this.getProperty(this.commands.get("PROP_GSM_NETWORK_TYPE"));
     }
 
     private String getDataFromShellCommand(String cmdName, String cmd) {
         try {
-            LOG.info("Getting '{}' for device: {}", cmdName, this.adbDevice.getSerialNumber());
-            String result = this.adbExecutor.executeShellCommand(cmd);
-            if (result != null) {
-                result = result.trim();
+            String result = null;
+            if (cmd != null) {
+                LOG.info("Getting '{}' for device: {}", cmdName, this.adbDevice.getSerialNumber());
+                String cmdResult = this.adbExecutor.executeShellCommand(cmd);
+                if (cmdResult != null && !cmdResult.trim().isBlank()) {
+                    result = cmdResult.trim();
+                }
+                LOG.debug("Result of command '{}' for device '{}, Result: '{}'", cmdName, this.adbDevice.getSerialNumber(), result);
             }
-            LOG.debug("Result of command '{}' for device '{}, Result: '{}'", cmdName, this.adbDevice.getSerialNumber(), result);
             return result;
         } catch (TimeoutException | AdbCommandRejectedException | ShellCommandUnresponsiveException | IOException e) {
             LOG.debug("Error getting '{}' for device: {}", cmdName, this.adbDevice.getSerialNumber(), e);
@@ -346,14 +249,10 @@ public class DeviceInfo {
     }
 
     private String getProperty(String property) {
-        try {
-            LOG.info("Getting property '{}' for device: {}", property, this.adbDevice.getSerialNumber());
-            String propResult = this.adbDevice.getSystemProperty(property).get();
-            LOG.debug("Result of property '{}' for device '{}, Result: '{}'", property, this.adbDevice.getSerialNumber(), propResult);
-            return (propResult == null || propResult.isBlank()) ? null : propResult;
-        } catch (InterruptedException | ExecutionException e) {
-            LOG.debug("Error getting property '{}' for device {}: ", property, this.adbDevice.getSerialNumber(), e);
-            return null;
-        }
+        LOG.debug("Getting property '{}' for device: {}", property, this.adbDevice.getSerialNumber());
+//            String propResult = this.adbDevice.getSystemProperty(property).get();
+		String propResult = this.adbDevice.getProperty(property);
+		LOG.trace("Result of property '{}' for device '{}, Result: '{}'", property, this.adbDevice.getSerialNumber(), propResult);
+		return (propResult == null || propResult.isBlank()) ? null : propResult;
     }
 }

@@ -31,7 +31,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <com.android.tools>27.1.3</com.android.tools>
+        <com.android.tools>30.2.2</com.android.tools>
     </properties>
 
     <dependencies>
