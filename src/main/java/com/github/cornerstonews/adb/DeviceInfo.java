@@ -133,7 +133,8 @@ public class DeviceInfo {
     }
 
     private boolean isNFCOn() {
-        if (this.getDataFromShellCommand("NFC_STATUS", this.commands.get("CMD_GET_NFC_STATUS")).contains("mState=on")) {
+        String nfcResult = this.getDataFromShellCommand("NFC_STATUS", this.commands.get("CMD_GET_NFC_STATUS"));
+        if (nfcResult != null && nfcResult.contains("mState=on")) {
             return true;
         }
         return false;
