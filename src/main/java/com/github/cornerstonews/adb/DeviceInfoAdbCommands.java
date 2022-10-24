@@ -44,7 +44,7 @@ public class DeviceInfoAdbCommands {
             put("CMD_GET_MOBILE_DATA", "settings get global mobile_data");
             put("CMD_GET_AIRPLANE_MODE", "settings get global airplane_mode_on");
             put("CMD_GET_BLUETOOTH_ON", "settings get global bluetooth_on");
-            put("CMD_GET_NFC_STATUS", "dumpsys nfc | grep mState");
+            put("CMD_GET_NFC_STATUS", "if dumpsys nfc | grep 'mState='; then echo $nfcdumpsys | grep 'mState='; return; else dumpsys nfc | grep '^State: '; fi");
         }
     };
 
