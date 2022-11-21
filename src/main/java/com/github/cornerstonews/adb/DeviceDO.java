@@ -4,6 +4,7 @@ public class DeviceDO {
 
     private String serialNumber;
     private String androidVersion;
+    private int apiLevel;
     private String manufacturer;
     private String model;
     private String product;
@@ -12,7 +13,6 @@ public class DeviceDO {
     private Integer batteryLevel;
     private String batteryHealth;
     private Double batteryTemperature;
-    private String network;
     private boolean isWifiEnabled;
     private boolean isSimPresent = false;
     private String ICCID;
@@ -44,6 +44,14 @@ public class DeviceDO {
 
     public void setAndroidVersion(String androidVersion) {
         this.androidVersion = androidVersion;
+    }
+
+    public int getApiLevel() {
+        return apiLevel;
+    }
+
+    public void setApiLevel(int apiLevel) {
+        this.apiLevel = apiLevel;
     }
 
     public String getManufacturer() {
@@ -108,14 +116,6 @@ public class DeviceDO {
 
     public void setBatteryTemperature(Double batteryTemperature) {
         this.batteryTemperature = batteryTemperature;
-    }
-
-    public String getNetwork() {
-        return network;
-    }
-
-    public void setNetwork(String network) {
-        this.network = network;
     }
 
     public boolean isWifiEnabled() {
@@ -220,6 +220,62 @@ public class DeviceDO {
 
     public void setNfcOn(boolean isNfcOn) {
         this.isNfcOn = isNfcOn;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("{\"serialNumber\":\"");
+        builder.append(serialNumber);
+        builder.append("\", \"androidVersion\":\"");
+        builder.append(androidVersion);
+        builder.append("\", \"apiLevel\":\"");
+        builder.append(apiLevel);
+        builder.append("\", \"manufacturer\":\"");
+        builder.append(manufacturer);
+        builder.append("\", \"model\":\"");
+        builder.append(model);
+        builder.append("\", \"product\":\"");
+        builder.append(product);
+        builder.append("\", \"isOnline\":\"");
+        builder.append(isOnline);
+        builder.append("\", \"state\":\"");
+        builder.append(state);
+        builder.append("\", \"batteryLevel\":\"");
+        builder.append(batteryLevel);
+        builder.append("\", \"batteryHealth\":\"");
+        builder.append(batteryHealth);
+        builder.append("\", \"batteryTemperature\":\"");
+        builder.append(batteryTemperature);
+        builder.append("\", \"isWifiEnabled\":\"");
+        builder.append(isWifiEnabled);
+        builder.append("\", \"isSimPresent\":\"");
+        builder.append(isSimPresent);
+        builder.append("\", \"ICCID\":\"");
+        builder.append(ICCID);
+        builder.append("\", \"IMSI\":\"");
+        builder.append(IMSI);
+        builder.append("\", \"IMEI\":\"");
+        builder.append(IMEI);
+        builder.append("\", \"phoneNumber\":\"");
+        builder.append(phoneNumber);
+        builder.append("\", \"simOperator\":\"");
+        builder.append(simOperator);
+        builder.append("\", \"rssi\":\"");
+        builder.append(rssi);
+        builder.append("\", \"isMobileDataEnabled\":\"");
+        builder.append(isMobileDataEnabled);
+        builder.append("\", \"mobileDataType\":\"");
+        builder.append(mobileDataType);
+        builder.append("\", \"isAirplaneModeOn\":\"");
+        builder.append(isAirplaneModeOn);
+        builder.append("\", \"isBluetoothOn\":\"");
+        builder.append(isBluetoothOn);
+        builder.append("\", \"isNfcOn\":\"");
+        builder.append(isNfcOn);
+        builder.append("\"}");
+        return builder.toString();
     }   
+    
     
 }

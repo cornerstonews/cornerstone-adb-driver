@@ -36,7 +36,7 @@ public class AdbExecutor {
     }
 
     public DeviceDO getDeviceInfo() {
-        return this.deviceInfo.getDeviceInfo();
+        return this.deviceInfo.getInfo();
     }
 
     public Boolean isOnline() {
@@ -132,5 +132,14 @@ public class AdbExecutor {
     public void reboot() throws TimeoutException, AdbCommandRejectedException, IOException {
         LOG.info("Rebooting device: '{}'", this.getDeviceSerial());
         this.adbDevice.reboot(null);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("{\"deviceSerial\":\"");
+        builder.append(deviceSerial);
+        builder.append("\"}");
+        return builder.toString();
     }
 }

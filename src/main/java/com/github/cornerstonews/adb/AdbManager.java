@@ -36,9 +36,13 @@ public class AdbManager {
     private final Set<IDeviceStatusListener> deviceStatusListeners = Sets.newCopyOnWriteArraySet();
     
     public AdbManager() throws FileNotFoundException, CornerstoneADBException {
-        this(null);
+        this((String) null);
     }
 
+    public AdbManager(AndroidDebugBridge bridge) {
+        this.bridge = bridge;
+    }
+    
     public AdbManager(String adbPath) throws FileNotFoundException, CornerstoneADBException {
         if (adbPath != null) {
             File adb = new File(adbPath, SdkConstants.FN_ADB);
