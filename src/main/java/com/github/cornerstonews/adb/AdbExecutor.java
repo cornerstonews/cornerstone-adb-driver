@@ -92,6 +92,13 @@ public class AdbExecutor {
 
     public void pushFile(String local, String remote) throws SyncException, IOException, AdbCommandRejectedException, TimeoutException {
         this.adbDevice.pushFile(local, remote);
+        String MEDIA_SCAN_COMMAND = String.format("am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d file:%s", remote);
+        try {
+            String result = executeShellCommand(MEDIA_SCAN_COMMAND);
+            LOG.debug(result);
+        } catch (ShellCommandUnresponsiveException e) {
+            LOG.warn(e.getMessage());
+        }
     }
 
     // -----------------------------------------------------------------------
