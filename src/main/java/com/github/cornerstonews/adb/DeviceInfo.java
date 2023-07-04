@@ -84,9 +84,9 @@ public class DeviceInfo {
     }
 
     private void setFetchOnlyOnceData() {
-        if (this.deviceDO.getApiLevel() >= 32) {
-            cachePhoneInfoWithDialerApp();
-        }
+//        if (this.deviceDO.getApiLevel() >= 32) {
+//            cachePhoneInfoWithDialerApp();
+//        }
     }
 
     private void cachePhoneInfoWithDialerApp() {
