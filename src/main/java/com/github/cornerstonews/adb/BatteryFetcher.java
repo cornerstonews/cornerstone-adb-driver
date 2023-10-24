@@ -119,8 +119,7 @@ public class BatteryFetcher {
     }
 
     private void initiateBatteryQuery() {
-        String threadName = String.format("query-battery-%s", mDevice.getSerialNumber());
-        Thread fetchThread = new Thread(threadName) {
+        Thread fetchThread = new Thread() {
             @Override
             public void run() {
                 Throwable exception;
@@ -270,7 +269,8 @@ public class BatteryFetcher {
     }
 
     private synchronized void handleBatteryLevelFailure(Throwable e) {
-        LOG.warn("{} getting battery level for device {}: {}", e.getClass().getSimpleName(), mDevice.getSerialNumber(), e.getMessage());
+        LOG.warn("'{}' getting battery level for device. Error: '{}'", e.getClass().getSimpleName(), e.getMessage());
+        LOG.trace("'{}' getting battery level for device: '{}'", e.getClass().getSimpleName(), mDevice.getSerialNumber(), e);
         if (mPendingHealthRequest != null) {
             if (!mPendingHealthRequest.setException(e)) {
                 // should never happen

@@ -81,7 +81,7 @@ public class AdbManager {
                     waitUntilAction(() -> this.bridge.hasInitialDeviceList(), 30000, 1000, "Getting initial device list...");
                     this.getDevices();
                     LOG.info("Found '{}' initial connected devices.", devices.size());
-                    this.devices.values().forEach(device -> LOG.info(" |--> Serial: '{}'", device.getDeviceSerial()));
+                    this.devices.values().forEach(device -> LOG.trace(" |--> Serial: '{}'", device.getDeviceSerial()));
                     this.bridgeCreated = true;
                 }
             }
@@ -133,7 +133,7 @@ public class AdbManager {
                 listener.deviceStatusChanged(deviceExecutor.getDeviceInfo());
             } catch (Exception e) {
                 // Catch possible exception thrown by listeners
-                LOG.debug("Execption thrown by device status listener");
+                LOG.debug("Exception thrown by device status listener");
             }
         }
     }
@@ -143,14 +143,16 @@ public class AdbManager {
 
             @Override
             public void deviceDisconnected(IDevice device) {
-                LOG.info("Device with serial '{}' disconnected.", device.getSerialNumber());
+                LOG.info("Device disconnected");
+                LOG.trace("Device with serial '{}' disconnected.", device.getSerialNumber());
                 AdbExecutor removedDevice = devices.remove(device.getSerialNumber());
                 updateDeviceStatusListener(removedDevice);
             }
 
             @Override
             public void deviceConnected(IDevice device) {
-                LOG.info("Device with serial '{}' connected.", device.getSerialNumber());
+                LOG.info("Device connected");
+                LOG.trace("Device with serial '{}' connected.", device.getSerialNumber());
                 AdbExecutor deviceAdbExecutor = new AdbExecutor(device.getSerialNumber(), device);
                 deviceAdbExecutor.getDeviceInfo();
                 devices.put(device.getSerialNumber(), deviceAdbExecutor);
@@ -159,9 +161,11 @@ public class AdbManager {
 
             @Override
             public void deviceChanged(IDevice device, int changeMask) {
-                LOG.debug("Changed device event detected on Device with serial '{}'. ChangeMask: {}", device.getSerialNumber(), changeMask);
+                LOG.debug("Changed device event detected on Device. ChangeMask: {}", changeMask);
+                LOG.trace("Changed device event detected on Device with serial '{}'. ChangeMask: {}", device.getSerialNumber(), changeMask);
                 if (IDevice.CHANGE_STATE == changeMask && device.isOnline()) {
-                    LOG.info("Device '{}' state changed to 'ONLINE'", device.getSerialNumber());
+                    LOG.info("Device state changed to 'ONLINE'");
+                    LOG.trace("Device: '{}' state changed to 'ONLINE'", device.getSerialNumber());
                     AdbExecutor deviceAdbExecutor = new AdbExecutor(device.getSerialNumber(), device);
                     deviceAdbExecutor.getDeviceInfo();
                     devices.put(device.getSerialNumber(), deviceAdbExecutor);
@@ -206,11 +210,11 @@ public class AdbManager {
                 .filter(device -> (deviceFilter == null || deviceFilter.contains(device.getSerialNumber())))
                 .parallel()
                 .forEach((device) -> {
-                    LOG.debug("**** Processing '{}' in {}", device.getSerialNumber(), Thread.currentThread());
+                    LOG.trace("**** Processing Device: '{}' in Thread: '{}'", device.getSerialNumber(), Thread.currentThread());
                     AdbExecutor deviceAdbExecutor = new AdbExecutor(device.getSerialNumber(), device);
                     deviceAdbExecutor.getDeviceInfo();
                     filteredDevices.put(device.getSerialNumber(), deviceAdbExecutor);
-                    LOG.debug("**** Finished Processing '{}' in {}", device.getSerialNumber(), Thread.currentThread());
+                    LOG.trace("**** Finished Processing Device: '{}' in Thread: '{}'", device.getSerialNumber(), Thread.currentThread());
                 });
 
         return filteredDevices;
