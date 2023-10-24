@@ -225,8 +225,6 @@ public class DeviceDO {
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("{\"serialNumber\":\"");
-        builder.append(serialNumber);
         builder.append("\", \"androidVersion\":\"");
         builder.append(androidVersion);
         builder.append("\", \"apiLevel\":\"");
@@ -251,14 +249,6 @@ public class DeviceDO {
         builder.append(isWifiEnabled);
         builder.append("\", \"isSimPresent\":\"");
         builder.append(isSimPresent);
-        builder.append("\", \"ICCID\":\"");
-        builder.append(ICCID);
-        builder.append("\", \"IMSI\":\"");
-        builder.append(IMSI);
-        builder.append("\", \"IMEI\":\"");
-        builder.append(IMEI);
-        builder.append("\", \"phoneNumber\":\"");
-        builder.append(phoneNumber);
         builder.append("\", \"simOperator\":\"");
         builder.append(simOperator);
         builder.append("\", \"rssi\":\"");

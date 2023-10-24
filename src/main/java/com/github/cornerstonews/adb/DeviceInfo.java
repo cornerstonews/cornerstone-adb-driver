@@ -235,25 +235,28 @@ public class DeviceInfo {
         try {
             String result = null;
             if (cmd != null) {
-                LOG.info("Getting '{}' for device: {}", cmdName, this.adbDevice.getSerialNumber());
+                LOG.info("Getting '{}' for device", cmdName);
+                LOG.trace("Getting '{}' for device: '{}'", cmdName, this.adbDevice.getSerialNumber());
                 String cmdResult = this.adbExecutor.executeShellCommand(cmd);
                 if (cmdResult != null && !cmdResult.trim().isBlank()) {
                     result = cmdResult.trim();
                 }
-                LOG.debug("Result of command '{}' for device '{}, Result: '{}'", cmdName, this.adbDevice.getSerialNumber(), result);
+                LOG.trace("Result of command: '{}' for device: '{}', Result: '{}'", cmdName, this.adbDevice.getSerialNumber(), result);
             }
             return result;
         } catch (TimeoutException | AdbCommandRejectedException | ShellCommandUnresponsiveException | IOException e) {
-            LOG.debug("Error getting '{}' for device: {}", cmdName, this.adbDevice.getSerialNumber(), e);
+            LOG.debug("Error getting '{}' for device. Error: '{}'", cmdName, e.getMessage());
+            LOG.trace("Error getting '{}' for device: '{}'", cmdName, this.adbDevice.getSerialNumber(), e);
             return null;
         }
     }
 
     private String getProperty(String property) {
-        LOG.debug("Getting property '{}' for device: {}", property, this.adbDevice.getSerialNumber());
+        LOG.debug("Getting property: '{}' for device", property);
+        LOG.trace("Getting property: '{}' for device: '{}'", property, this.adbDevice.getSerialNumber());
 //            String propResult = this.adbDevice.getSystemProperty(property).get();
 		String propResult = this.adbDevice.getProperty(property);
-		LOG.trace("Result of property '{}' for device '{}, Result: '{}'", property, this.adbDevice.getSerialNumber(), propResult);
+		LOG.trace("Result of property: '{}' for device: '{}', Result: '{}'", property, this.adbDevice.getSerialNumber(), propResult);
 		return (propResult == null || propResult.isBlank()) ? null : propResult;
     }
 }

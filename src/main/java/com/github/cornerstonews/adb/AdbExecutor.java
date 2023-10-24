@@ -105,12 +105,14 @@ public class AdbExecutor {
     // Package operations
     // -----------------------------------------------------------------------
     public void installPackage(String packagePath, boolean reinstall) throws InstallException {
-        LOG.info("Instaling package: '{}' on device: '{}'", packagePath, this.getDeviceSerial());
+        LOG.info("Installing package: '{}'", packagePath);
+        LOG.trace("Installing package: '{}' on device: '{}' reinstall: '{}'", packagePath, this.getDeviceSerial(), reinstall);
         this.adbDevice.installRemotePackage(packagePath, reinstall);
     }
 
     public void uninstallPackage(String packageName) throws InstallException {
-        LOG.info("Uninstaling package: '{}' from device: '{}'", packageName, this.getDeviceSerial());
+        LOG.info("Uninstalling package: '{}'", packageName);
+        LOG.trace("Uninstalling package: '{}' from device: '{}'", packageName, this.getDeviceSerial());
         this.adbDevice.uninstallPackage(packageName);
     }
 
@@ -118,7 +120,8 @@ public class AdbExecutor {
     // RAW Commands
     // -----------------------------------------------------------------------
     public String executeShellCommand(String command) throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
-        LOG.info("Executing shell command on device: '{}', command: '{}'", this.getDeviceSerial(), command);
+        LOG.info("Executing shell command: '{}'", command);
+        LOG.trace("Executing shell command on device: '{}', command: '{}'", this.getDeviceSerial(), command);
         final StringBuilder commandOutput = new StringBuilder();
         this.adbDevice.executeShellCommand(command, new MultiLineReceiver() {
 
@@ -137,7 +140,8 @@ public class AdbExecutor {
     }
 
     public void reboot() throws TimeoutException, AdbCommandRejectedException, IOException {
-        LOG.info("Rebooting device: '{}'", this.getDeviceSerial());
+        LOG.info("Rebooting device");
+        LOG.trace("Rebooting device: '{}'", this.getDeviceSerial());
         this.adbDevice.reboot(null);
     }
 
