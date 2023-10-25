@@ -66,13 +66,13 @@ public class DeviceInfoAdbCommands {
     };
 
     // Android 11
-    private static Map<String, String> commands_API_30 = new HashMap<String, String>() {
+    private static Map<String, String> commands_API_30_TO_32 = new HashMap<String, String>() {
         {
-            put("CMD_GET_IMEI", "service call iphonesubinfo 2 | cut -c 52-66 | tr -d '.[:space:]'");
-            put("CMD_GET_IMSI", "service call iphonesubinfo 9 | cut -c 52-66 | tr -d '.[:space:]'");
+            put("CMD_GET_IMEI", "service call iphonesubinfo 1 s16 com.android.shell | cut -c 52-66 | tr -d '.[:space:]'");
+            put("CMD_GET_IMSI", "service call iphonesubinfo 9 s16 com.android.shell | cut -c 52-66 | tr -d '.[:space:]'");
             // getIccSerialNumberWithFeature()
-            put("CMD_GET_ICCID", "service call iphonesubinfo 13 | cut -c 52-66 | tr -d '.[:space:]'");
-            put("CMD_GET_NUMBER", "service call iphonesubinfo 15 | cut -c 52-66 | tr -d '.[:space:]'");
+            put("CMD_GET_ICCID", "service call iphonesubinfo 13 s16 com.android.shell | cut -c 52-66 | tr -d '.[:space:]'");
+            put("CMD_GET_NUMBER", "service call iphonesubinfo 19 | cut -c 52-66 | tr -d '.[:space:]'");
         }
     };
     
@@ -107,8 +107,10 @@ public class DeviceInfoAdbCommands {
             override = commands;
             break;
 
+        case 32:
+        case 31:
         case 30:
-            override = commands_API_30;
+            override = commands_API_30_TO_32;
             break;
 
         case 29:
