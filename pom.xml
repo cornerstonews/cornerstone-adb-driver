@@ -19,7 +19,7 @@
         <connection>scm:git:git@github.com:cornerstonews/cornerstone-adb-driver.git</connection>
         <developerConnection>scm:git:git@github.com:cornerstonews/cornerstone-adb-driver.git</developerConnection>
         <url>https://github.com/cornerstonews/cornerstone-adb-driver</url>
-        <tag>cornerstone-adb-driver-1.4.2</tag>
+        <tag>HEAD</tag>
   </scm>
 
     <repositories>
