@@ -45,7 +45,7 @@ public class DeviceInfoAdbCommands {
             + "service call phone 1 s16 '*#06#' && sleep 1 && input text '#06#'; "
             + "uiautomator dump /sdcard/device-info.xml; am force-stop com.google.android.dialer;";
 
-    // Android 12, 12L & 13 (API 31, 32 & 33)
+    // Android 14 (API 34)
     private static Map<String, String> commands = new HashMap<String, String>() {
         {
             put("PROP_PRODUCT_DEVICE", "ro.product.product.device");
@@ -53,10 +53,10 @@ public class DeviceInfoAdbCommands {
             put("PROP_SIM_OPERATOR", "gsm.operator.alpha");
             put("PROP_GSM_NETWORK_TYPE", "gsm.network.type");
 //            put("CMD_GET_IMEI", "imei=$(cat /sdcard/device-info.xml | sed s/\\>\\<\\/\\\\n/g | grep -A1 IMEI | tail -n1); echo ${imei} | awk -F 'text=\"' '{print $2}' | cut -c1-16");
-            put("CMD_GET_IMEI", "service call iphonesubinfo 1 s16 com.android.shell | cut -c 52-66 | tr -d '.[:space:]'");
-            put("CMD_GET_IMSI", "service call iphonesubinfo 9 s16 com.android.shell | cut -c 52-66 | tr -d '.[:space:]'");
-            put("CMD_GET_ICCID", "service call iphonesubinfo 13 s16 com.android.shell | cut -c 52-66 | tr -d '.[:space:]'");
-            put("CMD_GET_NUMBER", "service call iphonesubinfo 15 s16 com.android.shell | cut -c 52-66 | tr -d '.[:space:]'");
+            put("CMD_GET_IMEI", "service call iphonesubinfo 1 s16 com.android.shell | cut -c 50-64 | tr -d '.[:space:]'");
+            put("CMD_GET_IMSI", "service call iphonesubinfo 9 s16 com.android.shell | cut -c 50-64 | tr -d '.[:space:]'");
+            put("CMD_GET_ICCID", "service call iphonesubinfo 13 s16 com.android.shell | cut -c 50-64 | tr -d '.[:space:]'");
+            put("CMD_GET_NUMBER", "service call iphonesubinfo 15 s16 com.android.shell | cut -c 50-64 | tr -d '.[:space:]'");
             put("CMD_GET_WIFI_ON", "settings get global wifi_on");
             put("CMD_GET_MOBILE_DATA", "settings get global mobile_data");
             put("CMD_GET_AIRPLANE_MODE", "settings get global airplane_mode_on");
@@ -65,7 +65,17 @@ public class DeviceInfoAdbCommands {
         }
     };
 
-    // Android 11
+    // Android 13 (API 33)
+    private static Map<String, String> commands_API_33 = new HashMap<String, String>() {
+        {
+            put("CMD_GET_IMEI", "service call iphonesubinfo 1 s16 com.android.shell | cut -c 52-66 | tr -d '.[:space:]'");
+            put("CMD_GET_IMSI", "service call iphonesubinfo 9 s16 com.android.shell | cut -c 52-66 | tr -d '.[:space:]'");
+            put("CMD_GET_ICCID", "service call iphonesubinfo 13 s16 com.android.shell | cut -c 52-66 | tr -d '.[:space:]'");
+            put("CMD_GET_NUMBER", "service call iphonesubinfo 15 s16 com.android.shell | cut -c 52-66 | tr -d '.[:space:]'");
+        }
+    };
+
+    // Android 11, 12, 12L (API 30, 31, 32)
     private static Map<String, String> commands_API_30_TO_32 = new HashMap<String, String>() {
         {
             put("CMD_GET_IMEI", "service call iphonesubinfo 1 s16 com.android.shell | cut -c 52-66 | tr -d '.[:space:]'");
@@ -105,6 +115,10 @@ public class DeviceInfoAdbCommands {
         switch (apiLevel) {
         default:
             override = commands;
+            break;
+
+        case 33:
+            override = commands_API_33;
             break;
 
         case 32:
